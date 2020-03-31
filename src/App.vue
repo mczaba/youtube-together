@@ -97,7 +97,6 @@ export default {
   mounted() {
     this.socket.on("playVideo", () => {
       this.player.playVideo();
-      console.log("play");
     });
     this.socket.on("pauseVideo", () => {
       this.player.pauseVideo();
