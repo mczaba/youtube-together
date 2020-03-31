@@ -129,7 +129,7 @@ nav {
   gap: 30px;
   align-items: center;
   justify-content: center;
-  margin-bottom: 30px;
+  margin-bottom: 50px;
   button,
   input {
     height: 30px;
