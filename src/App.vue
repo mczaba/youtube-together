@@ -49,9 +49,8 @@ export default {
   },
   methods: {
     load() {
-      this.id = this.url.split("v=")[1].split("&")[0];
-      this.socket.emit("changeID", this.id);
-      this.getDuration();
+      const id = this.url.split("v=")[1].split("&")[0];
+      this.socket.emit("changeID", id);
     },
     getDuration() {
       this.player.getDuration().then(time => {
@@ -109,6 +108,10 @@ export default {
     this.socket.on("initialize", data => {
       this.id = data.ID;
       this.currentTime = data.timer;
+    });
+    this.socket.on("changeID", data => {
+      this.id = data;
+      this.getDuration();
     });
   }
 };
