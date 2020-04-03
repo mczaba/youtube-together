@@ -32,7 +32,6 @@
             :video-id="id"
             ref="youtube"
             :playerVars="playerVars"
-            @ready="getDuration"
             @playing="onPlaying"
             :width="1200"
             :height="790"
@@ -55,6 +54,7 @@
       </div>
       <div class="chat">
         <h3 v-if="socket">Vous êtes actuellement dans le salon : {{ room }}</h3>
+        <h4>Il y a actuellement {{ people }} personnes dans le salon</h4>
         <div class="chatView">
           <div class="messageList">
             <p v-for="(message, index) in messages" :key="index">
@@ -74,18 +74,18 @@
 
 <script>
 import io from "socket.io-client";
-let interval = null;
+let sendTimeInterval = null;
 
 export default {
   name: "App",
   data() {
     return {
       url: null,
-      id: "BBJa32lCaaY",
+      id: null,
+      firstplay: false,
       playerVars: {
         autoplay: 1,
         controls: 0,
-        start: 30,
         modestbranding: 1
       },
       roomInput: null,
@@ -95,7 +95,8 @@ export default {
       socket: null,
       name: "anonyme",
       chatMessage: "",
-      messages: []
+      messages: [],
+      people: 0
     };
   },
   filters: {
@@ -142,14 +143,20 @@ export default {
       });
       this.socket.on("pauseVideo", () => {
         this.player.pauseVideo();
-        clearInterval(interval);
+        clearInterval(sendTimeInterval);
       });
       this.socket.on("seekTo", data => {
         this.player.seekTo(data, true);
         this.playVideo();
       });
       this.socket.on("initialize", data => {
+        this.firstplay = false;
         this.id = data.ID;
+        this.people = data.people;
+        this.currentTime = data.timer;
+        if (this.currentTime !== 0) {
+          this.currentTime += 3;
+        }
       });
       this.socket.on("changeID", data => {
         this.id = data;
@@ -170,6 +177,7 @@ export default {
       });
     },
     load() {
+      clearInterval(sendTimeInterval);
       const id = this.url.split("v=")[1].split("&")[0];
       this.socket.emit("changeID", id);
     },
@@ -182,14 +190,18 @@ export default {
       this.socket.emit("playVideo");
     },
     onPlaying() {
-      this.getDuration();
-      interval = setInterval(() => {
-        this.player.getCurrentTime().then(time => {
-          this.currentTime = time;
-          this.socket.emit("refreshTimer", time);
-        });
+      if (!this.firstplay) {
+        this.firstplay = true;
+        this.player.seekTo(this.currentTime, true);
         this.getDuration();
-      }, 50);
+      } else {
+        sendTimeInterval = setInterval(() => {
+          this.player.getCurrentTime().then(time => {
+            this.currentTime = time;
+            this.socket.emit("refreshTimer", time);
+          });
+        }, 1000);
+      }
     },
     pauseVideo() {
       this.socket.emit("pauseVideo");
@@ -291,14 +303,14 @@ button {
   background-color: white;
   border-radius: 10px;
   .chatView {
-    height: 600px;
+    height: 580px;
     text-align: left;
     padding: 15px 30px;
     overflow: auto;
     position: relative;
     .messageList {
       overflow: auto;
-      max-height: 570px;
+      max-height: 550px;
       width: calc(100% - 30px);
       position: absolute;
       bottom: 19px;
@@ -306,6 +318,12 @@ button {
         margin: 5px 0 0 0;
       }
     }
+  }
+  h3 {
+    margin-bottom: 5px;
+  }
+  h4 {
+    margin-top: 0;
   }
   textarea {
     width: calc(100% - 60px);
@@ -317,7 +335,6 @@ button {
     resize: none;
     &::placeholder {
       font-family: "Nunito", sans-serif;
-      text-align: center;
     }
   }
 }
