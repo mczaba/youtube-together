@@ -193,7 +193,6 @@ export default {
       if (!this.firstplay) {
         this.firstplay = true;
         this.player.seekTo(this.currentTime, true);
-        this.getDuration();
       } else {
         sendTimeInterval = setInterval(() => {
           this.player.getCurrentTime().then(time => {
@@ -202,6 +201,7 @@ export default {
           });
         }, 1000);
       }
+      this.getDuration();
     },
     pauseVideo() {
       this.socket.emit("pauseVideo");
@@ -303,14 +303,14 @@ button {
   background-color: white;
   border-radius: 10px;
   .chatView {
-    height: 580px;
+    height: 590px;
     text-align: left;
     padding: 15px 30px;
     overflow: auto;
     position: relative;
     .messageList {
       overflow: auto;
-      max-height: 550px;
+      max-height: 560px;
       width: calc(100% - 30px);
       position: absolute;
       bottom: 19px;
