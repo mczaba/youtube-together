@@ -33,8 +33,8 @@
             ref="youtube"
             :playerVars="playerVars"
             @playing="onPlaying"
-            :width="1200"
-            :height="790"
+            :width="playerWidth"
+            :height="playerHeight"
           />
         </div>
         <div class="controls">
@@ -83,6 +83,8 @@ export default {
       url: null,
       id: null,
       firstplay: false,
+      playerWidth: 1200,
+      playerHeight: 675,
       playerVars: {
         autoplay: 1,
         controls: 0,
@@ -127,6 +129,15 @@ export default {
     }
   },
   methods: {
+    getWindowWidth() {
+      if (window.innerWidth < 1200) {
+        this.playerWidth = window.innerWidth;
+        this.playerHeight = Math.round((window.innerWidth * 9) / 16);
+      } else {
+        this.playerWidth = 1200;
+        this.playerHeight = 675;
+      }
+    },
     keydown(event, method) {
       if (event.key === "Enter") {
         event.preventDefault();
@@ -150,6 +161,7 @@ export default {
         this.playVideo();
       });
       this.socket.on("initialize", data => {
+        console.log("initialized");
         this.firstplay = false;
         this.id = data.ID;
         this.people = data.people;
@@ -234,6 +246,12 @@ export default {
     advancement() {
       return (this.currentTime / this.totalTime) * 100;
     }
+  },
+  mounted() {
+    this.$nextTick(function() {
+      window.addEventListener("resize", this.getWindowWidth);
+      this.getWindowWidth();
+    });
   }
 };
 </script>
@@ -363,5 +381,42 @@ button {
   position: absolute;
   background-color: $button;
   border-radius: 9px;
+}
+
+@media screen and (max-width: 1750px) {
+  .mainView {
+    flex-direction: column;
+    gap: 10px;
+    width: 1200px;
+    margin: auto;
+  }
+  .chat {
+    width: 100%;
+    border-radius: 0;
+  }
+}
+@media screen and (max-width: 1200px) {
+  .mainView {
+    width: 100%;
+  }
+  .theater {
+    width: 100%;
+  }
+  .controls {
+    width: 98%;
+  }
+}
+
+@media screen and (max-width: 1075px) {
+  nav {
+    height: 80px;
+    flex-wrap: wrap;
+    gap: 0;
+  }
+}
+@media screen and (max-width: 690px) {
+  nav {
+    height: 120px;
+  }
 }
 </style>
